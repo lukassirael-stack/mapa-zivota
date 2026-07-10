@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa života — Oáza Adamanthea</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-deep:#070b1c; --navy:#0d1430; --navy-soft:#141d44;
+    --gold:#d4af6a; --gold-bright:#f0d9a0; --gold-dim:#9c8049;
+    --text:#e8e6df; --text-soft:#b9b6ab; --panel-border:rgba(212,175,106,.22);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 700px at 75% -10%, rgba(40,56,120,.55), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(80,60,120,.30), transparent 60%),
+      linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 55%, #060916 100%);
+    color:var(--text); font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:19px; line-height:1.7; min-height:100%; overflow-x:hidden; position:relative;
+  }
+  #stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .star{position:absolute;background:#fff;border-radius:50%;opacity:.7;animation:tw 3.5s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.15}50%{opacity:.8}}
+  .wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:72px 24px 96px;text-align:center}
+  .kicker{font-family:'Cinzel',serif;letter-spacing:.42em;font-size:12px;color:var(--gold);margin-bottom:14px}
+  h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(34px,6vw,52px);color:var(--gold-bright);margin-bottom:8px}
+  .sub{font-style:italic;color:var(--text-soft);margin-bottom:40px}
+  .card{border:1px solid var(--gold);border-radius:12px;background:rgba(20,29,68,.55);backdrop-filter:blur(4px);
+    padding:30px 28px;margin:0 auto 26px;max-width:520px;box-shadow:0 18px 60px rgba(0,0,0,.35);text-align:left}
+  .row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed rgba(212,175,106,.18)}
+  .row:last-child{border-bottom:none}
+  .lbl{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.18em;color:var(--text-soft);padding-top:5px}
+  .val{color:var(--gold-bright);text-align:right}
+  .greeting{font-size:24px;color:var(--gold-bright);margin-bottom:10px;font-style:italic}
+  .intro{color:var(--text-soft);max-width:520px;margin:0 auto 28px}
+  button.cta{
+    font-family:'Cinzel',serif;letter-spacing:.14em;font-size:16px;border:none;cursor:pointer;
+    color:#241a05;background:linear-gradient(135deg,var(--gold-bright),var(--gold));
+    padding:18px 34px;border-radius:999px;box-shadow:0 14px 38px rgba(212,175,106,.32);
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  }
+  button.cta:hover{transform:translateY(-2px);box-shadow:0 18px 44px rgba(212,175,106,.42);filter:brightness(1.05)}
+  button.cta:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}
+  .price{font-family:'Cinzel',serif;color:var(--gold);font-size:14px;letter-spacing:.2em;margin-top:14px}
+  input.kod{
+    width:100%;max-width:340px;background:rgba(7,11,28,.6);border:1px solid var(--panel-border);
+    color:var(--gold-bright);font-family:'Cinzel',serif;letter-spacing:.2em;text-align:center;
+    font-size:18px;padding:14px 16px;border-radius:10px;outline:none;margin-bottom:18px;text-transform:uppercase;
+  }
+  input.kod:focus{border-color:var(--gold)}
+  .msg{max-width:520px;margin:0 auto 22px;padding:14px 18px;border-radius:10px;display:none}
+  .msg.on{display:block}
+  .msg.err{background:rgba(120,40,40,.25);border:1px solid rgba(220,120,120,.4);color:#f0c9c9}
+  .msg.info{background:rgba(40,70,120,.25);border:1px solid rgba(120,160,220,.35);color:#c9d9f0}
+  .loading{display:none;color:var(--text-soft);font-style:italic;margin:18px 0}
+  .loading.on{display:block}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--gold-dim);border-top-color:var(--gold-bright);
+    border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .foot{margin-top:60px;color:var(--text-soft);font-size:15px}
+  .foot a{color:var(--gold);text-decoration:none}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div class="wrap">
+  <div class="kicker">OÁZA ADAMANTHEA</div>
+  <h1>Mapa života</h1>
+  <p class="sub">osobní průvodce cykly tvé duše</p>
+
+  <div id="loading" class="loading on"><span class="spin"></span>Načítám…</div>
+  <div id="msg" class="msg"></div>
+
+  <!-- Vstup kódu (když není v URL nebo nebyl nalezen) -->
+  <div id="vstup" class="hide">
+    <p class="intro">Mapa života navazuje na <strong>Hvězdný kvíz</strong>. Zadej svůj kód
+      (najdeš ho v e-mailu s výsledkem kvízu) a my z tvých odpovědí, hvězdného rodu
+      a data narození utkáme mapu tvých životních cyklů.</p>
+    <input class="kod" id="kodInput" placeholder="HVEZDA-XXXXX" maxlength="14">
+    <div><button class="cta" id="pokracovatBtn">Pokračovat</button></div>
+  </div>
+
+  <!-- Osobní karta + platba -->
+  <div id="nabidka" class="hide">
+    <p class="greeting" id="pozdrav"></p>
+    <p class="intro">Tvé odpovědi z kvízu, tvůj hvězdný rod i rytmus tvých let už známe.
+      Mapa života z nich utká <strong>časovou osu tvé duše</strong> — sedmileté cykly, lekce,
+      výzvy, dary a konkrétní cestu vpřed pro období, ve kterém právě stojíš.</p>
+    <div class="card" id="profilKarta"></div>
+    <button class="cta" id="zaplatitBtn">✦ Odemknout mou Mapu života</button>
+    <div class="price">444 KČ · PLATBA KARTOU · MAPA DO PÁR MINUT E-MAILEM</div>
+  </div>
+
+  <div class="foot">S láskou tvoří <a href="https://oaza-adamanthea.cz">Oáza Adamanthea</a> ·
+    otázky? <a href="mailto:oaza.adamanthea@gmail.com">oaza.adamanthea@gmail.com</a></div>
+</div>
+
+<script>
+/* hvězdné pozadí */
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<130;i++){
+    const s=document.createElement('div');s.className='star';
+    const size=Math.random()<.85?1.5:2.5;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${size}px;height:${size}px;animation-delay:${(Math.random()*3.5).toFixed(2)}s;animation-duration:${(2.5+Math.random()*3).toFixed(2)}s`;
+    c.appendChild(s);
+  }
+})();
+
+const $=(id)=>document.getElementById(id);
+const loading=$('loading'), msg=$('msg'), vstup=$('vstup'), nabidka=$('nabidka');
+let aktualniKod=null;
+
+function ukazMsg(text, typ){ msg.textContent=text; msg.className='msg on '+typ; }
+function skryjMsg(){ msg.className='msg'; }
+function stav(el){ [loading,vstup,nabidka].forEach(x=>x.classList.add('hide')); loading.classList.remove('on');
+  if(el===loading){el.classList.remove('hide');el.classList.add('on');} else if(el){el.classList.remove('hide');} }
+
+async function overKod(kod){
+  stav(loading); skryjMsg();
+  try{
+    const r=await fetch('/api/checkout?kod='+encodeURIComponent(kod));
+    const d=await r.json();
+    if(r.ok){
+      aktualniKod=kod;
+      if(d.mapa && ['paid','generated','sent'].includes(d.mapa.status)){
+        location.href='/dekujeme?m='+d.mapa.id; return;
+      }
+      $('pozdrav').textContent=`${d.name}, tvá Mapa života čeká na utkání.`;
+      $('profilKarta').innerHTML=
+        `<div class="row"><div class="lbl">JMÉNO</div><div class="val">${esc(d.name)}</div></div>`+
+        `<div class="row"><div class="lbl">HVĚZDNÝ ROD</div><div class="val">${esc(d.starLineage)}</div></div>`+
+        `<div class="row"><div class="lbl">KÓD KVÍZU</div><div class="val">${esc(kod)}</div></div>`;
+      stav(nabidka);
+    } else {
+      stav(vstup);
+      if(d.error==='nenalezen') ukazMsg('Tento kód jsme nenašli. Zkontroluj ho prosím — je v e-mailu s výsledkem kvízu.','err');
+      else if(d.error==='bez_odpovedi') ukazMsg('Tvůj kvíz proběhl dřív, než jsme začali ukládat odpovědi — mapu ti rádi připravíme osobně. Napiš nám na oaza.adamanthea@gmail.com.','info');
+      else ukazMsg('Kód má tvar HVEZDA-XXXXX.','err');
+    }
+  }catch(e){ stav(vstup); ukazMsg('Něco se nepovedlo, zkus to prosím znovu.','err'); }
+}
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+$('pokracovatBtn').addEventListener('click',()=>{
+  const k=$('kodInput').value.trim().toUpperCase();
+  if(!/^HVEZDA-[A-Z0-9]{4,8}$/.test(k)){ukazMsg('Kód má tvar HVEZDA-XXXXX.','err');return;}
+  overKod(k);
+});
+$('kodInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('pokracovatBtn').click();});
+
+$('zaplatitBtn').addEventListener('click',async()=>{
+  const btn=$('zaplatitBtn'); btn.disabled=true; skryjMsg();
+  try{
+    const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kod:aktualniKod})});
+    const d=await r.json();
+    if(r.ok && d.url){ location.href=d.url; return; }
+    if(d.error==='uz_zaplaceno'){ location.href='/dekujeme?m='+d.mapaId; return; }
+    ukazMsg('Platbu se nepodařilo otevřít, zkus to prosím znovu.','err'); btn.disabled=false;
+  }catch(e){ ukazMsg('Platbu se nepodařilo otevřít, zkus to prosím znovu.','err'); btn.disabled=false; }
+});
+
+/* start */
+const kodZUrl=(new URLSearchParams(location.search).get('kod')||'').trim().toUpperCase();
+if(/^HVEZDA-[A-Z0-9]{4,8}$/.test(kodZUrl)) overKod(kodZUrl);
+else stav(vstup);
+</script>
+</body>
+</html>
